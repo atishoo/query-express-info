@@ -1,0 +1,4 @@
+packaging
+webdriver-manager
+selenium
+numpy
