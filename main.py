@@ -20,16 +20,28 @@ BAIDU = 'https://www.baidu.com/'
 
 if __name__ == '__main__':
     express_result = []
+    open("result.csv", 'w').close()
+    # 载入待查询数据
+    data = np.loadtxt('11-01-430.csv', dtype=str, delimiter=',', usecols=(0, 3, 4, 11, 12), skiprows=1)
+    for i in data:
+        kuaidi = Kuaidi100()
+        result = kuaidi.setNum(i[4]).track()
+        if result['message'] == 'ok':
+            # 查询成功
+            # 物流状态 Kuaidi100State[int(result['state'])]
+            # 物流最新的一条信息 result['data'][0]['context']
+            express_info = result['data'][0]['context']
+            express_info = express_info.replace(',', '，')
+            print('%s: [%s]%s' % (i[4], Kuaidi100State[int(result['state'])], express_info))
+            express_result.append(','.join(i) + ',%s,%s'%(Kuaidi100State[int(result['state'])], express_info) + '\n')
+        else:
+            # 暂无物流
+            express_result.append(','.join(i) + ',没有物流信息,注意📢注意📢注意📢\n')
+            print('%s: 没有查询到物流' % (i[4], ))
 
-    kuaidi = Kuaidi100()
-    result = kuaidi.setNum('单号').track()
-    if result['message'] == 'ok':
-        # 查询成功
-        print(Kuaidi100State[int(result['state'])])  # 物流状态
-        print(result['data'][0]['context'])  # 物流最新的一条信息
-    else:
-        # 暂无物流
-        pass
+    with open('result.csv', 'a') as file_for_result:
+        for row in express_result:
+            file_for_result.write(row)
     quit()
     # 打开浏览器
     browser = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
